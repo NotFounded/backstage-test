@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<meta charset="utf-8">
+<head th:include="include :: header"></head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-activity-add">
+        	
+        	<div class="form-group">	
+				<label class="col-sm-3 control-label">活动基本信息：</label>
+			</div>
+        	
+        	<hr>
+        	
+			<div class="form-group">	
+				<label class="col-sm-3 control-label">活动描述：</label>
+				<div class="col-sm-8">
+					<input id="description" name="description" class="form-control" type="text">
+				</div>
+			</div>
+			<div class="form-group">	
+				<label class="col-sm-3 control-label">活动类型：</label>
+				<div class="col-sm-8">
+					<select id="type" name="type" class="form-control"></select>
+				</div>
+			</div>
+			<div class="form-group">	
+				<label class="col-sm-3 control-label">appKey：</label>
+				<div class="col-sm-8">
+					<input id="appKey" name="appKey" class="form-control" type="text" readonly="readonly">
+				</div>
+			</div>
+			<div class="form-group">	
+				<label class="col-sm-3 control-label">appSecret：</label>
+				<div class="col-sm-8">
+					<input id="appSecret" name="appSecret" class="form-control" type="text" readonly="readonly">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">状态：</label>
+				<div class="col-sm-8">
+				    <div class="radio-box">
+						<input type="radio" id="enable" name="enable" value="1" checked="checked">
+						<label >可用</label>
+					</div>
+					<div class="radio-box">
+						<input type="radio" id="enable" name="enable" value="0" >
+						<label >不可用</label>
+					</div>
+				</div>
+			</div>
+			
+			<div class="form-group">	
+				<label class="col-sm-3 control-label">活动配置信息：</label>
+			</div>
+			
+			<hr>
+			
+			<div id="comment" style="display: none" >
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">留言字数限制：</label>
+					<div class="col-sm-8">
+						<input id="limitWords" name="limitWords" class="form-control" type="text" value="140">
+					</div>
+				</div>
+				
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">审核等级：</label>
+					<div class="col-sm-8">
+						<input id="checkLevel" name="checkLevel" class="form-control" type="text" value="2">
+					</div>
+				</div>
+				
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">用户名规则：</label>
+					<div class="col-sm-8">
+						<input id="nameRule" name="nameRule" class="form-control" type="text" value="^[\u0391-\uFFE5A-Za-z]+$">
+					</div>
+				</div>
+				
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">密码最小长度：</label>
+					<div class="col-sm-8">
+						<input id="pwdLengthRule" name="pwdLengthRule" class="form-control" type="text" value="6">
+					</div>
+				</div>
+				
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">缓存留言页数：</label>
+					<div class="col-sm-8">
+						<input id="pageCacheCounts" name="pageCacheCounts" class="form-control" type="text" value="100">
+					</div>
+				</div>
+				
+				<div class="form-group">	
+					<label class="col-sm-3 control-label">每页展示留言数：</label>
+					<div class="col-sm-8">
+						<input id="reponseCounts" name="reponseCounts" class="form-control" type="text" value="50">
+					</div>
+				</div>
+			</div>
+			
+		</form>
+		
+		
+	</div>
+    <div th:include="include::footer"></div>
+    <script type="text/javascript">
+    
+    	$("#appKey").val(randomString(20));
+    	$("#appSecret").val(randomString(32));
+    	
+    	$(function () {
+    		$.ajax({
+		        type: "post",
+		        url: prefix + "/queryActivityType",
+		        data: null,
+		        success: function(r) {
+		            if (r.code == 0) {
+		                var types = r.types;
+		                selectTypes(types);
+		            }
+		        }
+		    });
+    	})
+    	
+    	function selectTypes(types) {
+    		for (var i=0;i<types.length;i++) {
+    			if (types[i] == "comment") {
+        		$("#type").append("<option value='"+ types[i] +"'>留言活动</option>");
+    			}
+        	}
+			dispalyConfig();        	
+    	}
+    	
+    	function dispalyConfig () {
+    		var type = $("#type").val();
+    		if (type == "comment") {
+    			$("#comment").show();
+    		} else if (type == "") {
+    			$("#comment").hide();
+    		}
+    	}
+    	
+    	$("#type").change(function () {
+    		dispalyConfig ();
+    	})
+    	
+		var prefix = ctx + "system/activity"
+		$("#form-activity-add").validate({
+			rules:{
+				description:{
+					required:true,
+				},
+				type:{
+					required:true,
+				},
+				limitWords:{
+					required:true,
+					digits:true,
+				},
+				checkLevel:{
+					required:true,
+					digits:true,
+				},
+				nameRule:{
+					required:true,
+				},
+				pwdLengthRule:{
+					required:true,
+					digits:true,
+				},
+				pageCacheCounts:{
+					required:true,
+					digits:true,
+				},
+				reponseCounts:{
+					required:true,
+					digits:true,
+				}
+			}
+		});
+		
+		function submitHandler() {
+	        if ($.validate.form()) {
+	            $.operate.save(prefix + "/add", $('#form-activity-add').serialize());
+	        }
+	    }
+	    
+	    //取指定长度的随机字符串
+	    function randomString(len) {
+		  var charSet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+		  var randomString = '';
+		  for (var i = 0; i < len; i++) {
+		   var randomPoz = Math.floor(Math.random() * charSet.length);
+		   randomString += charSet.substring(randomPoz,randomPoz+1);
+		  }
+		  return randomString;
+		}
+	    
+	</script>
+</body>
+</html>

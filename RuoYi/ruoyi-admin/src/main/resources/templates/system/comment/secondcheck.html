@@ -1,0 +1,157 @@
+<!DOCTYPE HTML>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org"
+	xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<meta charset="utf-8">
+<head th:include="include :: header"></head>
+<body class="gray-bg">
+
+	<span id="userIdSpan" style="display: none "><shiro:principal property = "userId"/></span>
+
+	<div class="container-div">
+		<div class="row">
+			<div class="col-sm-12 search-collapse">
+				<form id="formId">
+					<div class="select-list">
+						<ul>
+							<li>活动名称：<select id="activity_select" name="activityId"></select>
+							</li>
+
+							<li><a class="btn btn-primary btn-rounded btn-sm"
+								onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+								<a class="btn btn-warning btn-rounded btn-sm"
+								onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+							</li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div class="col-sm-12 select-table table-striped">
+				<table id="bootstrap-table" data-mobile-responsive="true"></table>
+			</div>
+		</div>
+	</div>
+	<div th:include="include :: footer"></div>
+	<script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:secondCheck:check')}]];
+        var removeFlag = [[${@permission.hasPermi('system:secondCheck:check')}]];
+        var prefix = ctx + "system/secondcheck";
+        var datas = [[${@dict.getType('comment_pass_state')}]];
+        
+        function selectActivity(activity) {
+        	if (activity.length == 0) {
+        		$("#activity_select").append("<option value='0'>没有权限</option>");
+        		return;
+        	} else {
+	        	for (var i=0;i<activity.length;i++) {
+	        		$("#activity_select").append("<option value='"+ activity[i].id +"'>"+ activity[i].description +"</option>");
+	        	}
+        	}
+        }
+
+		window.onload = function () {
+			$.table.search()
+		}
+
+        $(function() {
+        	var userId = $("#userIdSpan").html();
+        	$.ajax({
+		        type: "post",
+		        url: prefix + "/queryActivity",
+		        data: {"userId":userId},
+		        success: function(r) {
+		            if (r.code == 0) {
+		                var activlty = $.parseJSON(r.activity);
+		                selectActivity(activlty);
+		            }
+		        }
+		    });
+        
+            var options = {
+                url: prefix + "/list",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                modalName: "留言",
+				search: false,
+		        showExport: true,
+                columns: [
+				
+				{
+					field : 'id', 
+					title : '留言id',
+					visible: false
+				},
+				{
+					field : 'userId', 
+					title : '用户id',
+					visible: false
+				},
+				{
+					field : 'activity.description', 
+					title : '活动',
+				},
+				{
+					field : 'username', 
+					title : '用户名',
+					sortable: true
+				},
+				{
+					field : 'comment', 
+					title : '留言内容',
+					sortable: true
+				},
+				{
+					field : 'praiseCounts', 
+					title : '点赞数',
+					sortable: true
+				},
+				{
+					field : 'time', 
+					title : '留言时间',
+					formatter: function(value, row, index) {
+						return format(value);
+					}
+				},
+				{
+		            title: '操作',
+		            align: 'center',
+		            formatter: function(value, row, index) {
+		            	var actions = [];
+		            	actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="#" onclick="pass(\'' + row.id + '\')"><i class="fa fa-edit"></i>审核通过</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="#" onclick="notPass(\'' + row.id + '\')"><i class="fa fa-remove"></i>审核不通过</a>');
+						return actions.join('');
+		            }
+		        }]
+            };
+            $.table.init(options);
+        });
+        
+        //格式化时间
+        function add0(m){return m<10?'0'+m:m }
+		function format(value) {
+			var time = new Date(value);
+			var y = time.getFullYear();
+			var m = time.getMonth()+1;
+			var d = time.getDate();
+			var h = time.getHours();
+			var mm = time.getMinutes();
+			var s = time.getSeconds();
+			return y+'-'+add0(m)+'-'+add0(d)+' '+add0(h)+':'+add0(mm)+':'+add0(s);
+		}
+		
+		var cheakUrl = prefix + "/check";
+		//二级审核通过
+		function pass(id) {
+			var data = {"id": id ,"status": 2};
+			$.operate.submit(cheakUrl, "post", "json", data);
+		}
+		
+		//二级审核不通过
+		function notPass(id) {
+			var data = {"id": id ,"status": -1};
+			$.operate.submit(cheakUrl, "post", "json", data);
+		}
+        
+    </script>
+</body>
+</html>

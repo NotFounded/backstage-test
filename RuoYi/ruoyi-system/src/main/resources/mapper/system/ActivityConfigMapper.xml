@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ActivityConfigMapper">
+    
+    <resultMap type="ActivityConfig" id="ActivityConfigResult">
+        <result property="id"    column="id"    />
+        <result property="activity_id"    column="activity_id"    />
+        <result property="key"    column="key"    />
+        <result property="value"    column="value"    />
+    </resultMap>
+	
+	<sql id="selectActivityConfigVo">
+        select id, activity_id, `key`, `value` from theme_activity_config
+    </sql>
+	
+    <select id="selectActivityConfigList" parameterType="ActivityConfig" resultMap="ActivityConfigResult">
+        <include refid="selectActivityConfigVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+             <if test="activityId != null "> and activity_id = #{activityId}</if>
+             <if test="key != null  and key != '' "> and `key` = #{key}</if>
+             <if test="value != null  and value != '' "> and `value` = #{value}</if>
+         </where>
+    </select>
+    
+    <select id="selectActivityConfigById" parameterType="Integer" resultMap="ActivityConfigResult">
+        <include refid="selectActivityConfigVo"/>
+        where id = #{id}
+    </select>
+        
+    <update id="updateActivityConfig" parameterType="ActivityConfig">
+        update theme_activity_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="value != null  and value != ''  ">value = #{value},</if>
+        </trim>
+        where activity_id = #{activity_id} and `key` = #{key}
+    </update>
+    
+    <insert id="insertActivityConfig"  parameterType="ActivityConfig">
+        insert into theme_activity_config (activity_id, `key`, `value`) values (#{activity_id}, #{key}, #{value});
+    </insert>
+
+    <select id="selectConfigByActivityId" parameterType="Integer" resultMap="ActivityConfigResult">
+    	<include refid="selectActivityConfigVo"/>
+    	where activity_id = #{activityId}
+    </select>
+    
+</mapper>

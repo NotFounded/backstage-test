@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org"
+	xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<meta charset="utf-8">
+<head th:include="include :: header"></head>
+<link th:href="@{/ajax/libs/jquery-layout/jquery.layout-latest.css}" rel="stylesheet"/>
+<link th:href="@{/ajax/libs/jquery-ztree/3.5/css/metro/zTreeStyle.css}" rel="stylesheet"/>
+
+<body class="gray-bg">
+	
+	<div class="container-div ui-layout-center">
+		<div class="row">
+			
+	        <div class="btn-group-sm hidden-xs" id="toolbar" role="group">
+	            <a class="btn btn-success" onclick="addAllUser()" shiro:hasPermission="system:activity:addUser">
+	                <i class="fa fa-edit"></i> 安排至此活动
+	            </a>
+	        </div>
+	        
+	        <div class="col-sm-12 select-table table-striped">
+			    <table id="bootstrap-table" data-mobile-responsive="true"></table>
+			</div>
+		</div>
+	</div>
+	<div style="display: none">
+		<input id="activity" th:value="${activityId}">
+	</div>
+	<div th:include="include :: footer"></div>
+	<script th:src="@{/ajax/libs/jquery-layout/jquery.layout-latest.js}"></script>
+	<script th:src="@{/ajax/libs/jquery-ztree/3.5/js/jquery.ztree.all-3.5.js}"></script>
+	<script th:inline="javascript">
+		var datas = [[${@dict.getType('sys_normal_disable')}]];
+		var prefix = ctx + "system/user";
+
+		$(function() {
+			queryUserList();
+		});
+
+		function queryUserList() {
+		    var options = {
+		        url: prefix + "/list",
+		        createUrl: prefix + "/add",
+		        updateUrl: prefix + "/edit/{id}",
+		        removeUrl: prefix + "/remove",
+		        exportUrl: prefix + "/export",
+		        sortName: "createTime",
+		        sortOrder: "desc",
+		        modalName: "用户",
+		        search: false,
+		        showExport: false,
+		        columns: [{
+		        	field: 'sysUserActivityList',
+		            checkbox: true,
+		            formatter: stateFormatter 
+		        },
+		        {
+		            field: 'userId',
+		            title: '用户ID',
+		            visible: false
+		        },
+		        {
+		            field: 'loginName',
+		            title: '登录名称',
+		            sortable: true
+		        },
+		        {
+		            field: 'userName',
+		            title: '用户名称'
+		        },
+		        {
+		            field: 'dept.deptName',
+		            title: '部门'
+		        },
+		        {
+		            field: 'email',
+		            title: '邮箱',
+		            visible: true
+		        },
+		        {
+		            field: 'phonenumber',
+		            title: '手机'
+		        },
+		        {
+		            field: 'status',
+		            title: '状态',
+		            align: 'center',
+		            formatter: function(value, row, index) {
+		            	return $.table.selectDictLabel(datas, value);
+		            }
+		        },
+		        {
+		            field: 'createTime',
+		            title: '创建时间',
+		            visible: false
+		        },
+		        ]
+		    };
+		    $.table.init(options);
+		}
+		
+		function addAllUser () {
+			var activityId = $("#activity").val();
+			var rows = $.common.isEmpty($.table._option.uniqueId) ? $.table.selectFirstColumns() : $.table.selectColumns($.table._option.uniqueId);
+/*         		if (rows.length == 0) {
+        			$.modal.alertWarning("请至少选择一条记录");
+        			return;
+        		}
+ */        	$.modal.confirm("确认要将选中的" + rows.length + "个用户安排到此活动吗?", function() {
+        		var url = ctx + "system/activity/addUser";
+        		var data = { "userIds": rows.join(), "activityId": activityId };
+        		$.operate.submit(url, "post", "json", data);
+        	});
+		}
+		
+		function submitHandler() {
+			addAllUser();
+		}
+		
+		function stateFormatter(value,row,index){
+			var activityId = $("#activity").val();
+			for (var i=0;i<value.length;i++) {
+				if (value[i].activity_id == activityId) {
+					return {
+						checked : true//设置选中
+					};
+				}
+			}
+			return value;
+		}
+		
+	</script>
+</body>
+</html>

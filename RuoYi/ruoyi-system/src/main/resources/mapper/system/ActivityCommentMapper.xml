@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ActivityCommentMapper">
+    
+    <resultMap type="ActivityComment" id="ActivityCommentResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="activityId"    column="activity_id"    />
+        <result property="username"    column="username"    />
+        <result property="comment"    column="comment"    />
+        <result property="praiseCounts"    column="praise_counts"    />
+        <result property="time"    column="time"    />
+        <result property="status"    column="status"    />
+        <association property="activity"    column="activity_id" javaType="Activity" resultMap="activityResult" />
+    </resultMap>
+	
+	<resultMap id="activityResult" type="Activity">
+		<id     property="id"   column="id"     />
+		<result property="description" column="description"   />
+		<result property="type" column="type"   />
+		<result property="appKey" column="appKey"   />
+		<result property="appSecret"   column="appSecret" />
+		<result property="time"   column="time" />
+		<result property="enable"   column="enable" />
+	</resultMap>
+	
+	<sql id="selectActivityCommentVo">
+        select id, user_id, activity_id, username, comment, praise_counts, time, status from theme_activity_comment
+    </sql>
+	
+    <select id="selectActivityCommentList" parameterType="ActivityComment" resultMap="ActivityCommentResult">
+        SELECT A.id, A.activity_id, A.`comment`, A.praise_counts, A.`status`, A.time, A.username, A.user_id, B.description from theme_activity_comment A LEFT JOIN theme_activity B on A.activity_id = B.id
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+             <if test="userId != null "> and user_id = #{userId}</if>
+             <if test="activityId != null "> and activity_id = #{activityId}</if>
+             <if test="username != null  and username != '' "> and username = #{username}</if>
+             <if test="comment != null  and comment != '' "> and comment = #{comment}</if>
+             <if test="praiseCounts != null "> and praise_counts = #{praiseCounts}</if>
+             <if test="time != null "> and time = #{time}</if>
+             <if test="status != null "> and status = #{status}</if>
+         </where>
+         order by time desc
+    </select>
+    
+    <select id="selectFirstCheckCommentList" parameterType="ActivityComment" resultMap="ActivityCommentResult">
+        SELECT A.id, A.activity_id, A.`comment`, A.praise_counts, A.`status`, A.time, A.username, A.user_id, B.description from theme_activity_comment A LEFT JOIN theme_activity B on A.activity_id = B.id
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+             <if test="userId != null "> and user_id = #{userId}</if>
+             <if test="activityId != null "> and activity_id = #{activityId}</if>
+             <if test="username != null  and username != '' "> and username = #{username}</if>
+             <if test="comment != null  and comment != '' "> and comment = #{comment}</if>
+             <if test="praiseCounts != null "> and praise_counts = #{praiseCounts}</if>
+             <if test="time != null "> and time = #{time}</if>
+             <if test="status == null "> and status = 0</if>
+         </where>
+         order by time desc
+    </select>
+    
+    <select id="selectActivityCommentById" parameterType="Integer" resultMap="ActivityCommentResult">
+        <include refid="selectActivityCommentVo"/>
+        where id = #{id}
+    </select>
+	 
+	<select id="selectSecondCheckCommentList" parameterType="ActivityComment" resultMap="ActivityCommentResult">
+        SELECT A.id, A.activity_id, A.`comment`, A.praise_counts, A.`status`, A.time, A.username, A.user_id, B.description from theme_activity_comment A LEFT JOIN theme_activity B on A.activity_id = B.id
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+             <if test="userId != null "> and user_id = #{userId}</if>
+             <if test="activityId != null "> and activity_id = #{activityId}</if>
+             <if test="username != null  and username != '' "> and username = #{username}</if>
+             <if test="comment != null  and comment != '' "> and comment = #{comment}</if>
+             <if test="praiseCounts != null "> and praise_counts = #{praiseCounts}</if>
+             <if test="time != null "> and time = #{time}</if>
+             and status = 1
+         </where>
+         order by time desc
+    </select>
+    
+    <update id="check" parameterType="ActivityComment">
+        update theme_activity_comment
+        <trim prefix="SET" suffixOverrides=",">
+           status = #{status}
+        </trim>
+        where id = #{id}
+    </update>
+
+</mapper>

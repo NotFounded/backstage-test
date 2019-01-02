@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ActivityMapper">
+    
+    <resultMap type="Activity" id="ActivityResult">
+        <result property="id"    column="id"    />
+        <result property="description"    column="description"    />
+        <result property="type"    column="type"    />
+        <result property="appKey"    column="app_key"    />
+        <result property="appSecret"    column="app_secret"    />
+        <result property="time"    column="time"    />
+        <result property="enable"    column="enable"    />
+    </resultMap>
+    
+    <resultMap type="String" id="ActivityTypeResult">
+    	<result property="type"    column="type"    />
+    </resultMap>
+    
+	<sql id="selectActivityVo">
+        select id, description, type, app_key, app_secret, time, enable from theme_activity
+    </sql>
+	
+    <select id="selectActivityByUserId" parameterType="Activity" resultMap="ActivityResult">
+    	select * from theme_activity A LEFT JOIN sys_user_activity B ON A.id = B.activity_id where B.user_id = #{userId} and A.enable = 1
+    </select>
+    
+    <select id="selectActivityList" parameterType="Activity" resultMap="ActivityResult">
+    	<include refid="selectActivityVo"/>
+    	<where>  
+            <if test="id != null "> and id = #{id}</if>
+             <if test="description != null  and description != '' "> and description = #{description}</if>
+             <if test="type != null  and type != '' "> and type = #{type}</if>
+             <if test="appKey != null  and appKey != '' "> and app_key = #{appKey}</if>
+             <if test="appSecret != null  and appSecret != '' "> and app_secret = #{appSecret}</if>
+             <if test="time != null "> and time = #{time}</if>
+             <if test="enable != null "> and enable = #{enable}</if>
+         </where>
+    </select>
+    
+    <select id="selectActivityById" parameterType="Integer" resultMap="ActivityResult">
+        <include refid="selectActivityVo"/>
+        where id = #{id}
+    </select>
+    
+    <insert id="insertActivity" keyProperty="id" useGeneratedKeys="true" parameterType="Activity">
+        insert into theme_activity
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null  ">id,</if>
+			<if test="description != null  and description != ''  ">description,</if>
+			<if test="type != null  and type != ''  ">type,</if>
+			<if test="appKey != null  and appKey != ''  ">app_key,</if>
+			<if test="appSecret != null  and appSecret != ''  ">app_secret,</if>
+			<if test="time != null  ">time,</if>
+			<if test="enable != null  ">enable,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null  ">#{id},</if>
+			<if test="description != null  and description != ''  ">#{description},</if>
+			<if test="type != null  and type != ''  ">#{type},</if>
+			<if test="appKey != null  and appKey != ''  ">#{appKey},</if>
+			<if test="appSecret != null  and appSecret != ''  ">#{appSecret},</if>
+			<if test="time != null  ">#{time},</if>
+			<if test="enable != null  ">#{enable},</if>
+         </trim>
+    </insert>
+    
+    <update id="updateActivity" parameterType="Activity">
+        update theme_activity
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="description != null  and description != ''  ">description = #{description},</if>
+            <if test="type != null  and type != ''  ">type = #{type},</if>
+            <if test="appKey != null  and appKey != ''  ">app_key = #{appKey},</if>
+            <if test="appSecret != null  and appSecret != ''  ">app_secret = #{appSecret},</if>
+            <if test="time != null  ">time = #{time},</if>
+            <if test="enable != null  ">enable = #{enable},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserActivityByActivityId" parameterType="Integer">
+        delete from sys_user_activity where activity_id = #{activityId}
+    </delete>
+    
+    <select id="selectActivityType" resultMap="ActivityTypeResult">
+    	select distinct type from theme_activity
+    </select>
+    
+    <insert id="addUserByActivityId" parameterType="Integer">
+    	insert into sys_user_activity (user_id, activity_id) VALUES (#{userId}, #{activityId});
+    </insert>
+    
+</mapper>
